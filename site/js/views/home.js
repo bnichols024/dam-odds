@@ -135,11 +135,16 @@ export function renderHome(app) {
       else if (st.type === 'flex') {
         const k = flex.visitors.indexOf(F);
         const host = k >= 0 ? flex.hosts[k] : null;
-        who = h('span', { class: 'ladder-who' }, h('span', { class: 'muted' }, '@ '), host ? teamLink(app, host, { full: true }) : 'TBD', h('span', { class: 'tag' }, 'Flex · tentative'));
+        who = h(
+          'span',
+          { class: 'ladder-who' },
+          h('span', { class: 'nowrap' }, h('span', { class: 'muted' }, '@ '), host ? teamLink(app, host, { full: true }) : 'TBD'),
+          h('span', { class: 'tag' }, 'Flex · tentative')
+        );
       } else {
         const g = app.game(st.id);
         const opp = g.home === F ? 'away' : 'home';
-        who = h('span', { class: 'ladder-who' }, h('span', { class: 'muted' }, g.home === F ? 'vs ' : '@ '), teamLink(app, g[opp], { full: true }));
+        who = h('span', { class: 'ladder-who' }, h('span', { class: 'nowrap' }, h('span', { class: 'muted' }, g.home === F ? 'vs ' : '@ '), teamLink(app, g[opp], { full: true })));
       }
       return h(
         'li',

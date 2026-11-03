@@ -31,7 +31,7 @@ function overallAnchor(app, x) {
  */
 export function impact(app, gameId) {
   const g = app.game(gameId);
-  if (!g) return null;
+  if (!g || !g.home || !g.away) return null;
   const wo = app.wo.map.get(gameId);
   const ov = app.lev.get(gameId) || app.levLater.get(gameId);
   if (!wo && !ov) return null;

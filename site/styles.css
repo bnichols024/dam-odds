@@ -264,6 +264,7 @@ a.team:hover .tname { text-decoration: underline; }
 .ladder-row { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; gap: 4px 10px; padding: 8px 0; border-top: 1px solid var(--grid); }
 .ladder-row:first-child { border-top: 0; padding-top: 0; }
 .ladder-who { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; min-width: 0; }
+.nowrap { white-space: nowrap; display: inline-flex; align-items: center; gap: 2px; }
 .ladder-win { color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .ladder-bar { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; height: 14px; }
 .ladder-bar .bar-fill { height: 8px; border-radius: 0 4px 4px 0; flex: none; }

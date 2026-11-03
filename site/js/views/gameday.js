@@ -71,7 +71,7 @@ export function renderGameDay(app, params = []) {
                 h('div', { class: 'root-gain' }, h('strong', null, im.wo ? pts(im.wo.gain, { digits: 1 }) : pts(im.overall.gain)), h('span', { class: 'muted small' }, ` ${im.tier.label}`))
               ),
               gameLine(app, g.id),
-              h('a', { class: 'small day-link', href: `#/gameday/${dayKey(g.date)}` }, `${dayName(dayKey(g.date))} →`)
+              h('span', { class: 'small muted' }, dayShort(dayKey(g.date)))
             )
           )
         )

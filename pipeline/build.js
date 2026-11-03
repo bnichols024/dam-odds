@@ -232,9 +232,14 @@ async function main() {
     const a = conditional(ctx, resWO, { [id]: 'away' });
     return { id, swing: h.bid - a.bid };
   });
+  // only games with both teams known (an unpaired flex slot isn't something to root for)
+  const known = (id) => {
+    const g = ctx.games[ctx.gIndex.get(id)];
+    return !!(g && g.home && g.away);
+  };
   const top = (rows, k) =>
     rows
-      .filter((r) => !thisWeekIds.includes(r.id))
+      .filter((r) => !thisWeekIds.includes(r.id) && known(r.id))
       .sort((a, b) => Math.abs(b.swing) - Math.abs(a.swing))
       .slice(0, k)
       .map((r) => r.id);
