@@ -37,7 +37,8 @@ async function shoot(page, file, chunked) {
   const report = [];
   for (const c of configs) {
     for (const scheme of ['dark', 'light']) {
-      const context = await browser.newContext({ ...c.ctx, colorScheme: scheme });
+      // Bryan and his friend are in Oregon: render "today" in Pacific time
+      const context = await browser.newContext({ ...c.ctx, colorScheme: scheme, timezoneId: 'America/Los_Angeles' });
       const page = await context.newPage();
       const errors = [];
       page.on('console', (m) => {

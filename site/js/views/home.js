@@ -85,7 +85,7 @@ export function renderHome(app) {
           { class: 'stats' },
           im.ifWin != null ? stat('With a win', pct(im.ifWin), pts(im.ifWin - f.bid, { digits: 1 })) : null,
           im.ifLose != null ? stat('With a loss', pct(im.ifLose), pts(im.ifLose - f.bid, { digits: 1 })) : null,
-          im.winOutAfterWin != null ? stat('Win-out chance', `${pct(im.winOutNow)} → ${pct(im.winOutAfterWin)}`, 'now → with a win') : null
+          im.winOutAfterWin != null ? stat('Win-out chance with a win', pct(im.winOutAfterWin), `now ${pct(im.winOutNow)}`) : null
         )
       )
     );
@@ -141,18 +141,25 @@ export function renderHome(app) {
         const opp = g.home === F ? 'away' : 'home';
         who = h('span', { class: 'ladder-who' }, h('span', { class: 'muted' }, g.home === F ? 'vs ' : '@ '), teamLink(app, g[opp], { full: true }));
       }
-      return {
-        label: h('span', { class: 'ladder-label' }, h('span', { class: 'muted small ladder-date' }, shortDate(st.date)), who, h('span', { class: 'small muted' }, ` · win ${pct(st.pWin)}`)),
-        value: st.perfectAfter,
-        text: `${pct(st.perfectAfter)} still perfect`,
-        title: `Chance OSU is still unbeaten from here after this game: ${pct(st.perfectAfter)}`,
-      };
+      return h(
+        'li',
+        { class: 'ladder-row', title: `Chance OSU is still unbeaten from here after this game: ${pct(st.perfectAfter)}` },
+        h('span', { class: 'ladder-date muted small' }, shortDate(st.date)),
+        who,
+        h('span', { class: 'ladder-win small' }, `win ${pct(st.pWin)}`),
+        h(
+          'div',
+          { class: 'ladder-bar' },
+          h('div', { class: 'bar-fill', style: { width: `max(2px, calc((100% - 14ch) * ${st.perfectAfter.toFixed(4)}))`, background: 'var(--accent)' } }),
+          h('span', { class: 'bar-value' }, `${pct(st.perfectAfter)} still perfect`)
+        )
+      );
     };
     grid.append(
       cardSub(
         'Win-out ladder',
-        'Chance the Beavers are still perfect after each remaining game (win % assumes they won the games before it)',
-        barList(f.ladder.map(stepRow), { max: 1, color: 'var(--accent)' }),
+        'Chance the Beavers are still perfect after each remaining game. Each win % assumes they won the games before it.',
+        h('ol', { class: 'ladder' }, f.ladder.map(stepRow)),
         h(
           'p',
           { class: 'ladder-payoff' },

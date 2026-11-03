@@ -66,7 +66,7 @@ function osuRow(app, g) {
           { class: 'stats tight' },
           im.ifWin != null ? stat('CFP odds with a win', pct(im.ifWin)) : null,
           im.ifLose != null ? stat('With a loss', pct(im.ifLose)) : null,
-          im.winOutAfterWin != null ? stat('Win-out chance', `${pct(im.winOutNow)} → ${pct(im.winOutAfterWin)}`, 'now → with a win') : null
+          im.winOutAfterWin != null ? stat('Win-out chance with a win', pct(im.winOutAfterWin), `now ${pct(im.winOutNow)}`) : null
         )
       : null
   );
