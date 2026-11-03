@@ -350,7 +350,7 @@ table.data td:first-child, table.data th:first-child { padding-left: 4px; }
 @media (max-width: 599px) {
   .tf-row { display: grid; gap: 4px; padding: 4px 0; }
   .tf-row .seg-ctl { width: 100%; }
-  .tf-row .seg-ctl button { flex: 1; }
+  .tf-row .seg-ctl button { flex: 1 0 auto; }
 }
 .week-group h3 { margin: 16px 0 6px; }
 .pick-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 7px 0; border-top: 1px solid var(--grid); flex-wrap: wrap; }
