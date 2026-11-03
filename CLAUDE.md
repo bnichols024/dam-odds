@@ -33,7 +33,28 @@ teams matter only through G6 teams' schedules (ratings, strength of schedule, qu
 - NDSU (MWC) and Sacramento State (MAC) are in FBS transition: ineligible for conference title
   games and the CFP in 2026 (`pipeline/config.js`).
 
+## Hosting
+- Public repo bnichols024/dam-odds (Bryan approved public on 2026-11-03), Pages from Actions:
+  https://bnichols024.github.io/dam-odds/
+- `refresh.yml`: on push, daily 13:17 UTC, hourly Saturday game windows, Tuesday nights after
+  CFP rankings. It commits `site/data/snapshot.json` + `history.json` as "dam-odds bot", so
+  `git pull` before pushing.
+- `screens.yml` (manual): Playwright screenshots of every page, phone chunks + desktop;
+  download with `gh run download <id> -n screenshots`. This server has no Chromium; don't
+  pull browser images here.
+- ESPN returns 403 to "HeadlessChrome" user agents/client hints; real browsers are fine.
+
+## Model decisions
+- Committee model: pairwise logistic on final CFP rankings 2014-2025, sign-constrained, variant
+  picked by leave-one-season-out hits then log score. Current: no raw wins, lambda 1, 10/12
+  seasons right (same as "fewest losses" baseline; misses 2014, 2025).
+- ESPN marks canceled games as state "post" with 0-0: parseEvent maps them to "canceled".
+- Live re-sims in the browser reuse the baseline's n and seed (20261103) so only changed games
+  move the odds. Leverage and What-If runs use smaller samples and are shown as shifts on top
+  of the headline odds (`anchored()` in components.js, `shift` in whatif.js).
+
 ## Notes
 - Created 2026-11-03 from Bryan's phone session.
+- Dev checks: `node pipeline/probe.js <gameId> [n]` for paired what-ifs at scale.
 - Never put `..` in a Bash command (server ask-rule). Use Write/Edit for files.
 - Server is shared and was overloaded on Nov 2; keep local runs light (sims are seconds).

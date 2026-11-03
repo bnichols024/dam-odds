@@ -58,19 +58,31 @@ export function renderWhatIf(app) {
       );
       return;
     }
-    const cur = r || state.lastResult;
+    const raw = r || state.lastResult;
     if (r) state.lastResult = r;
+    // The scenario and its paired baseline share a sample, so their difference is clean. Show
+    // that difference on top of the headline odds so the numbers match the rest of the site.
+    const head = app.sum;
+    const shift = (x, b, h0) => Math.max(0, Math.min(1, h0 + (x - b)));
+    const cur = raw && {
+      focus: {
+        bid: shift(raw.focus.bid, base.focus.bid, head.focus.bid),
+        champ: shift(raw.focus.champ, base.focus.champ, head.focus.champ),
+        title: shift(raw.focus.title, base.focus.title, head.focus.title),
+      },
+      teams: Object.fromEntries(Object.entries(raw.teams).map(([id, v]) => [id, { bid: shift(v.bid, base.teams[id]?.bid ?? 0, head.teams[id]?.bid ?? 0) }])),
+    };
     const card = h('div', { class: `card result-card${state.running ? ' stale' : ''}` });
     card.append(h('div', { class: 'card-head' }, h('h2', null, 'Your scenario'), state.running ? h('span', { class: 'pill' }, 'Simulating…') : null));
     if (state.error) card.append(h('p', { class: 'notice warn' }, state.error));
     if (cur) {
-      const d = cur.focus.bid - base.focus.bid;
+      const d = cur.focus.bid - head.focus.bid;
       card.append(
-        h('div', { class: 'hero-row' }, h('div', { class: 'hero-num small-hero' }, pct(cur.focus.bid)), h('div', { class: 'hero-side' }, delta(d), h('div', { class: 'muted small' }, `from ${pct(base.focus.bid)}`))),
+        h('div', { class: 'hero-row' }, h('div', { class: 'hero-num small-hero' }, pct(cur.focus.bid)), h('div', { class: 'hero-side' }, delta(d), h('div', { class: 'muted small' }, `from ${pct(head.focus.bid)}`))),
         h(
           'div',
           { class: 'stats' },
-          h('div', { class: 'stat' }, h('div', { class: 'stat-label' }, 'Pac-12 title'), h('div', { class: 'stat-value' }, pct(cur.focus.champ)), h('div', { class: 'stat-note' }, pts(cur.focus.champ - base.focus.champ, { digits: 1 }))),
+          h('div', { class: 'stat' }, h('div', { class: 'stat-label' }, 'Pac-12 title'), h('div', { class: 'stat-value' }, pct(cur.focus.champ)), h('div', { class: 'stat-note' }, pts(cur.focus.champ - head.focus.champ, { digits: 1 }))),
           h('div', { class: 'stat' }, h('div', { class: 'stat-label' }, 'Title game'), h('div', { class: 'stat-value' }, pct(cur.focus.title)))
         )
       );
@@ -83,7 +95,7 @@ export function renderWhatIf(app) {
           ids.map((id) => ({
             label: teamLink(app, id, { full: true, rank: false }),
             value: cur.teams[id].bid,
-            text: `${pct(cur.teams[id].bid)} (${pts(cur.teams[id].bid - (base.teams[id]?.bid || 0), { digits: 1 })})`,
+            text: `${pct(cur.teams[id].bid)} (${pts(cur.teams[id].bid - (head.teams[id]?.bid || 0), { digits: 1 })})`,
             emphasis: id === F,
             color: id === F ? 'var(--accent)' : 'var(--series-1)',
           }))

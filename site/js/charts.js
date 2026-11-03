@@ -2,10 +2,13 @@
 // crosshair tooltips, direct labels sparingly, values always also in text/table form.
 import { h, s, clear, pct } from './util.js';
 
-function niceMax(v) {
-  if (v <= 0) return 0.01;
-  const steps = [0.005, 0.01, 0.02, 0.025, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.8, 1];
-  return steps.find((x) => x >= v * 1.08) ?? 1;
+// Round axis: a clean step (1, 2, 2.5 or 5 x 10^k) and at most 5 ticks above zero.
+function niceScale(v) {
+  const top = Math.max(v * 1.08, 0.001);
+  const steps = [0.001, 0.002, 0.0025, 0.005, 0.01, 0.02, 0.025, 0.05, 0.1, 0.2, 0.25];
+  const step = steps.find((s) => top / s <= 5) ?? 0.25;
+  const ticks = Math.max(1, Math.ceil(top / step));
+  return { max: Math.min(1, ticks * step), ticks };
 }
 
 /**
@@ -28,17 +31,18 @@ export function lineChart(cfg) {
     const ih = H - m.t - m.b;
     const n = cfg.labels.length;
     const all = cfg.series.flatMap((x) => x.values.filter((v) => v != null));
-    const yMax = cfg.yMax ?? niceMax(Math.max(...all, 0.01));
+    const scale = niceScale(Math.max(...all, 0.005));
+    const yMax = cfg.yMax ?? scale.max;
     const x = (i) => m.l + (n <= 1 ? iw / 2 : (i * iw) / (n - 1));
     const y = (v) => m.t + ih - (v / yMax) * ih;
     const svg = s('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': cfg.title || 'line chart' });
     // grid + y ticks
-    const ticks = 4;
+    const ticks = cfg.yMax ? 4 : scale.ticks;
     for (let k = 0; k <= ticks; k++) {
       const v = (yMax * k) / ticks;
       svg.append(
         s('line', { x1: m.l, x2: W - m.r, y1: y(v), y2: y(v), class: k === 0 ? 'axis' : 'gridline' }),
-        s('text', { x: m.l - 6, y: y(v) + 4, class: 'tick', 'text-anchor': 'end' }, yFmt(v))
+        s('text', { x: m.l - 6, y: y(v) + 4, class: 'tick', 'text-anchor': 'end' }, cfg.tickFormat ? cfg.tickFormat(v) : `${+(v * 100).toFixed(1)}%`)
       );
     }
     // x labels (thin out on narrow screens)
@@ -137,6 +141,8 @@ export function lineChart(cfg) {
 export function barList(rows, { max, color = 'var(--accent)', empty = 'Nothing to show' } = {}) {
   const m = max ?? Math.max(0.0001, ...rows.map((r) => r.value));
   if (!rows.length) return h('p', { class: 'muted' }, empty);
+  // leave room at the end of the track for the longest value label
+  const room = Math.max(...rows.map((r) => String(r.text ?? pct(r.value)).length)) + 2;
   return h(
     'div',
     { class: 'bar-list', role: 'list' },
@@ -148,7 +154,10 @@ export function barList(rows, { max, color = 'var(--accent)', empty = 'Nothing t
         h(
           'div',
           { class: 'bar-track' },
-          h('div', { class: 'bar-fill', style: { width: `${Math.max(r.value > 0 ? 0.6 : 0, (r.value / m) * 100)}%`, background: r.color || color } }),
+          h('div', {
+            class: 'bar-fill',
+            style: { width: `max(${r.value > 0 ? 2 : 0}px, calc((100% - ${room}ch) * ${Math.min(1, r.value / m).toFixed(4)}))`, background: r.color || color },
+          }),
           h('span', { class: 'bar-value' }, r.text ?? pct(r.value))
         )
       )

@@ -115,7 +115,7 @@ export function renderRace(app) {
   );
 
   // odds over time, OSU + two biggest rivals
-  const hist = app.history;
+  const hist = app.chartHistory;
   if (hist.length > 1) {
     const rivals = ids.filter((id) => id !== F).slice(0, 2);
     const palette = ['var(--series-1)', 'var(--series-3)'];

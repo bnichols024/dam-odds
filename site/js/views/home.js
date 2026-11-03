@@ -132,7 +132,9 @@ export function renderHome(app) {
   );
 
   // ---- blockers ----
+  // (object keys that look like numbers come back in numeric order, so sort here)
   const blockers = Object.entries(f.blockers)
+    .sort((a, b) => b[1] - a[1])
     .slice(0, 7)
     .map(([id, v]) => ({ label: teamLink(app, id, { full: true }), value: v, color: 'var(--series-1)', title: `${app.T(id).location} takes the spot in ${pct(v)} of seasons` }));
   grid.append(
@@ -144,10 +146,10 @@ export function renderHome(app) {
   );
 
   // ---- odds over time ----
-  if (hist.length) {
-    const labels = hist.map((x) => (x.replay ? `Wk ${x.week}` : x.label === 'Now' ? 'Now' : 'Now'));
-    // collapse multiple live points to the latest per day for the label row
-    const values = hist.map((x) => x.osu.bid);
+  const chart = app.chartHistory;
+  if (chart.length) {
+    const labels = chart.map((x) => (x.replay ? `Wk ${x.week}` : 'Now'));
+    const values = chart.map((x) => x.osu.bid);
     root.append(
       cardSub(
         'Oregon State’s CFP odds this season',
@@ -155,7 +157,7 @@ export function renderHome(app) {
         lineChart({ labels, series: [{ id: F, label: 'Oregon State', color: 'var(--accent)', values, main: true }], title: 'Oregon State playoff odds by week' }),
         tableToggle(
           ['Point', 'CFP odds', 'Pac-12 title'],
-          hist.map((x, i) => [labels[i], pct(x.osu.bid), pct(x.osu.champ)])
+          chart.map((x, i) => [labels[i], pct(x.osu.bid), pct(x.osu.champ)])
         )
       )
     );

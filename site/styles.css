@@ -118,7 +118,7 @@ p { margin: 0 0 10px; }
 /* ---- layout ---- */
 .body { display: block; }
 .content { padding: 16px 16px calc(84px + env(safe-area-inset-bottom)); max-width: 1180px; margin: 0 auto; }
-main:focus { outline: none; }
+main:focus, main[tabindex]:focus-visible { outline: none; }
 .nav {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
   display: flex; justify-content: space-around;
@@ -166,7 +166,7 @@ main:focus { outline: none; }
 .card-head p { margin: 0; flex-basis: 100%; }
 .grid { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
 .grid > .card { margin-bottom: 0; }
-.grid.two { margin-bottom: 16px; }
+.grid.two { margin-bottom: 16px; align-items: start; }
 @media (min-width: 1000px) {
   .grid.two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 }

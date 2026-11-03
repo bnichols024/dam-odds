@@ -90,9 +90,16 @@ class App {
   teamGames(teamId) {
     return this.ctx.games.filter((g) => g.home === teamId || g.away === teamId).sort((a, b) => (a.date < b.date ? -1 : 1));
   }
-  // history series for one team (bid odds per history point)
+  // Weekly points for charts: one per finished week, plus the latest live run as "Now".
+  get chartHistory() {
+    const weekly = this.history.filter((x) => x.replay);
+    const live = this.history.filter((x) => !x.replay);
+    const now = live[live.length - 1];
+    return now ? [...weekly, now] : weekly;
+  }
+  // history series for one team (bid odds per chart point)
   historyFor(teamId) {
-    return this.history.map((hh) => hh.bids?.[teamId] ?? null);
+    return this.chartHistory.map((hh) => hh.bids?.[teamId] ?? null);
   }
 
   // ---- worker ----
@@ -184,7 +191,8 @@ class App {
         this.ctx = prepare(this.input);
         this.live.changed = true;
         this.emit('live-games');
-        const sum = await this.sim({ n: 8000, seed: 20261103 });
+        // same size and seed as the published baseline: only the changed games move the odds
+        const sum = await this.sim({ n: this.snap.sims || 20000, seed: 20261103 });
         this.sum = sum;
         this.emit('live-odds');
         // fresh leverage for games still to finish this week that matter most
@@ -192,9 +200,9 @@ class App {
           .filter((g) => g.week === week && g.status !== 'post' && g.kind === 'reg')
           .map((g) => g.id)
           .sort((a, b) => Math.abs(this.lev.get(b)?.swing || 0) - Math.abs(this.lev.get(a)?.swing || 0))
-          .slice(0, 12);
+          .slice(0, 8);
         if (open.length) {
-          const lv = await this.leverage(open, { n: 2500, seed: 4242 });
+          const lv = await this.leverage(open, { n: Math.min(4000, this.snap.leverage.n || 4000), seed: 4242 });
           for (const g of lv.games) this.lev.set(g.id, g);
           this.lev.base = lv.base;
           this.emit('live-leverage');
