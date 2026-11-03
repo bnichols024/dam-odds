@@ -1,0 +1,12 @@
+{
+  "name": "dam-odds",
+  "private": true,
+  "type": "module",
+  "description": "Oregon State College Football Playoff odds: Group of 6 race simulator and committee model",
+  "scripts": {
+    "train": "node pipeline/train.js",
+    "build": "node pipeline/build.js",
+    "test": "node --test pipeline/test",
+    "serve": "python3 -m http.server 8799 --directory site"
+  }
+}

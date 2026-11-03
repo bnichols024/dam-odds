@@ -1,0 +1,29 @@
+name: Screenshots
+
+# Manual check of every page at phone and desktop sizes, light and dark.
+on:
+  workflow_dispatch:
+
+jobs:
+  shoot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: |
+          mkdir -p /tmp/pw && cd /tmp/pw && npm init -y >/dev/null && npm i playwright@1.49.1
+          npx --prefix /tmp/pw playwright install --with-deps chromium
+      - name: Serve and shoot
+        run: |
+          python3 -m http.server 8799 --directory site >/dev/null 2>&1 &
+          sleep 1
+          mkdir -p shots
+          NODE_PATH=/tmp/pw/node_modules ALL=1 node tools/shoot.cjs shots
+      - uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: shots
