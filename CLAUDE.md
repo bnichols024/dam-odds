@@ -53,6 +53,15 @@ teams matter only through G6 teams' schedules (ratings, strength of schedule, qu
   move the odds. Leverage and What-If runs use smaller samples and are shown as shifts on top
   of the headline odds (`anchored()` in components.js, `shift` in whatif.js).
 
+## Games Today / win-out (added 2026-11-03)
+- Rooting numbers lead with "if OSU wins out" (`leverage(..., { extra: { forceTeams: { 204: 'win' } } })`,
+  stored as `snapshot.leverage.winOut`). OSU's overall odds (~1%) are too small for paired sims to
+  resolve weeknight games; the win-out view has ~10x the resolution. Tiers in `site/js/rooting.js`.
+- `focus.ladder` / `winOutAll` / `bidIfWinOut` come from the sims (correlated), not multiplied odds.
+- Days are the viewer's local day (`dayKey` in util.js); screenshots run in America/Los_Angeles.
+- Logos: ESPN CDN by team id (`logo()` in components.js), light + dark imgs, dot fallback.
+- Unpaired flex slots (away unknown) are excluded from rooting lists (they're usually OSU's game).
+
 ## Notes
 - Created 2026-11-03 from Bryan's phone session.
 - Dev checks: `node pipeline/probe.js <gameId> [n]` for paired what-ifs at scale.
