@@ -40,7 +40,7 @@ export function renderHome(app) {
       stat('Pac-12 title', pct(f.champ)),
       stat('Make the title game', pct(f.title)),
       best ? stat(`If ${best[0]}`, pct(best[1].bid), 'win out + win the title') : null,
-      stat('Simulations', sum.n.toLocaleString())
+      stat('Top 3 among G6', pct(['1', '2', '3'].reduce((a, k) => a + (f.g6Rank[k] || 0), 0)), 'on Selection Day')
     ),
     h(
       'p',

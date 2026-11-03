@@ -74,7 +74,8 @@ export function renderModel(app) {
         `Weights are per standard deviation of each item, so they compare directly. ${
           FEATURES.filter((f, k) => committee.weights[k] === 0 && f !== 'p4').length
             ? `${FEATURES.filter((f, k) => committee.weights[k] === 0 && f !== 'p4')
-                .map((f) => FEATURE_LABELS[f])
+                .map((f, i) => (f === 'wins' ? 'Raw win totals' : FEATURE_LABELS[f]))
+                .map((s, i) => (i ? s.toLowerCase() : s))
                 .join(' and ')} dropped out: once losses and the rating are known, they added nothing reliable in the backtest. `
             : ''
         }The Power 4 bonus the committee gives doesn’t apply inside the G6, so it’s left off this chart. The model ordered `,

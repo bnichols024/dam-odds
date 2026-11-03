@@ -72,8 +72,26 @@ export function renderWhatIf(app) {
       },
       teams: Object.fromEntries(Object.entries(raw.teams).map(([id, v]) => [id, { bid: shift(v.bid, base.teams[id]?.bid ?? 0, head.teams[id]?.bid ?? 0) }])),
     };
-    const card = h('div', { class: `card result-card${state.running ? ' stale' : ''}` });
-    card.append(h('div', { class: 'card-head' }, h('h2', null, 'Your scenario'), state.running ? h('span', { class: 'pill' }, 'Simulating…') : null));
+    const card = h('div', {
+      class: `card result-card${state.running ? ' stale' : ''}${state.expanded ? ' expanded' : ''}`,
+      role: 'button',
+      tabindex: 0,
+      'aria-expanded': state.expanded ? 'true' : 'false',
+      onclick: (e) => {
+        if (e.target.closest('a')) return;
+        state.expanded = !state.expanded;
+        card.classList.toggle('expanded', state.expanded);
+        card.setAttribute('aria-expanded', state.expanded ? 'true' : 'false');
+      },
+    });
+    card.append(
+      h(
+        'div',
+        { class: 'card-head' },
+        h('h2', null, 'Your scenario'),
+        state.running ? h('span', { class: 'pill' }, 'Simulating…') : h('span', { class: 'expand-hint muted small' }, state.expanded ? 'Tap to shrink' : 'Tap for details')
+      )
+    );
     if (state.error) card.append(h('p', { class: 'notice warn' }, state.error));
     if (cur) {
       const d = cur.focus.bid - head.focus.bid;

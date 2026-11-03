@@ -156,6 +156,7 @@ class App {
       const res = await fetch(scoreboardUrl(this.snap.season, week), { cache: 'no-store' });
       const data = await res.json();
       let changed = false;
+      let scores = false;
       let anyLive = false;
       const games = this.input.games.map((g) => ({ ...g }));
       const byId = new Map(games.map((g) => [g.id, g]));
@@ -170,17 +171,22 @@ class App {
         meta.possession = p.possession;
         meta.down = p.downDistance;
         if (p.oddsText && p.status === 'pre') meta.odds = p.oddsText;
-        if (g.status !== p.status || g.hs !== p.hs || g.as !== p.as) {
-          changed = changed || g.status !== p.status || p.status === 'in' || p.status === 'post';
+        if (p.status === 'canceled') continue;
+        if (g.status !== p.status || g.hs !== p.hs || g.as !== p.as || (p.status === 'in' && g.frac !== p.frac)) {
+          if (g.status !== p.status || p.status === 'in' || p.status === 'post') {
+            changed = true;
+            scores = true;
+          }
           g.status = p.status;
           g.hs = p.hs;
           g.as = p.as;
           g.frac = p.frac;
           if (p.status === 'post') g.spread = null;
         }
+        // only re-run for a real line move, not a half-point wiggle
         if (p.status === 'pre' && p.spread != null && g.spread !== p.spread) {
+          if (g.spread == null || Math.abs(g.spread - p.spread) >= 1.5) changed = true;
           g.spread = p.spread;
-          changed = true;
         }
       }
       this.live.checkedAt = new Date().toISOString();
@@ -189,7 +195,7 @@ class App {
         this.input = { ...this.input, games };
         this.inputKey = `live-${Date.now()}`;
         this.ctx = prepare(this.input);
-        this.live.changed = true;
+        this.live.changed = scores ? 'scores' : 'lines';
         this.emit('live-games');
         // same size and seed as the published baseline: only the changed games move the odds
         const sum = await this.sim({ n: this.snap.sims || 20000, seed: 20261103 });
@@ -309,7 +315,7 @@ function renderStatus() {
   clear(el);
   const L = app.live;
   if (L.active) el.append(h('span', { class: 'pill live' }, h('span', { class: 'dot' }), 'Live'), h('span', { class: 'muted small' }, ` updated ${clockTime(L.checkedAt)}`));
-  else if (L.changed) el.append(h('span', { class: 'pill' }, 'Updated with new results'), h('span', { class: 'muted small' }, ` ${clockTime(L.checkedAt)}`));
+  else if (L.changed) el.append(h('span', { class: 'pill' }, L.changed === 'scores' ? 'Updated with new scores' : 'Updated with new lines'), h('span', { class: 'muted small' }, ` ${clockTime(L.checkedAt)}`));
   else el.append(h('span', { class: 'muted small' }, `Model run ${ago(app.snap.generatedAt)}`));
 }
 
