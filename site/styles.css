@@ -213,6 +213,57 @@ a.team:hover .tname { text-decoration: underline; }
 .team.focus .tname { color: var(--accent); }
 .team-dot { display: inline-block; vertical-align: -1px; width: 10px; height: 10px; border-radius: 50%; flex: none; box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--border); }
 .rank { font-size: 11px; color: var(--muted); font-weight: 600; }
+
+/* ---- logos (light/dark pair; the theme picks one) ---- */
+.logo { display: inline-flex; align-items: center; justify-content: center; flex: none; vertical-align: middle; }
+.logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.logo .logo-dark { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .logo .logo-light { display: none; }
+  :root:not([data-theme='light']) .logo .logo-dark { display: block; }
+  :root:not([data-theme='light']) .logo.no-dark .logo-light { display: block; }
+}
+:root[data-theme='dark'] .logo .logo-light { display: none; }
+:root[data-theme='dark'] .logo .logo-dark { display: block; }
+:root[data-theme='dark'] .logo.no-dark .logo-light { display: block; }
+.hero-id { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.hero-id .hero-label { margin-bottom: 0; }
+.team-title { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+.team-title h1 { margin: 0; }
+
+/* ---- games today ---- */
+.today-card { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
+.watch-list { list-style: none; margin: 0; padding: 0; }
+.watch-row { padding: 12px 0; border-top: 1px solid var(--grid); }
+.watch-row:first-child { border-top: 0; padding-top: 2px; }
+.watch-row.osu { background: var(--accent-wash); border-radius: 12px; padding: 10px 12px; margin-bottom: 6px; border-top: 0; }
+.watch-row.is-final { opacity: 0.85; }
+.watch-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.watch-nums { margin-top: 2px; }
+.osu-banner { display: inline-flex; align-items: center; gap: 4px; }
+.tier { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 650; color: var(--ink-2); white-space: nowrap; }
+.tier-dots { display: inline-flex; gap: 3px; }
+.tier-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--grid); display: inline-block; }
+.tier-dots i.on { background: var(--accent); }
+.tier-none { color: var(--muted); }
+.went { font-size: 12px; font-weight: 650; white-space: nowrap; }
+.went.yes { color: var(--good-ink); }
+.went.no { color: var(--critical); }
+.tally { margin: 8px 0 0; font-weight: 600; }
+.no-effect { margin-top: 10px; }
+.no-effect summary { cursor: pointer; color: var(--ink-2); }
+.stats.tight { margin: 8px 0 2px; }
+.day-chips { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 10px; margin: 6px 0 4px; scrollbar-width: none; }
+.day-chips::-webkit-scrollbar { display: none; }
+.day-chip { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; white-space: nowrap; flex: none; }
+.day-chip.on { background: var(--accent); color: var(--on-accent); border-color: transparent; }
+.day-chip.empty { color: var(--muted); }
+.chip-count { font-size: 12px; opacity: 0.8; font-variant-numeric: tabular-nums; }
+.day-link { color: var(--ink-2); white-space: nowrap; }
+.ladder-label { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ladder-date { width: 46px; }
+.ladder-who { display: inline-flex; align-items: center; gap: 4px; }
+.ladder-payoff { margin: 12px 0 0; }
 .tag { font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 6px; background: var(--surface-2); color: var(--ink-2); margin-left: 4px; }
 .tag.subtle { color: var(--muted); }
 .win { color: var(--good-ink); font-weight: 650; }

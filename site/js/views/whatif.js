@@ -1,5 +1,5 @@
 import { h, pct, pts, clear, shortDate } from '../util.js';
-import { cardSub, delta, teamLink, dot } from '../components.js';
+import { cardSub, delta, teamLink, logo } from '../components.js';
 import { barList } from '../charts.js';
 
 // Kept across re-renders (live updates, navigation) so picks aren't lost.
@@ -252,7 +252,7 @@ export function renderWhatIf(app) {
     return h(
       'div',
       { class: `pick-row${cur ? ' set' : ''}` },
-      h('div', { class: 'pick-teams small' }, dot(away.color), h('span', null, away.abbr), h('span', { class: 'muted' }, g.neutral ? ' vs ' : ' @ '), dot(home.color), h('span', null, home.abbr), pH != null ? h('span', { class: 'muted' }, ` · ${home.abbr} ${pct(pH)}`) : null),
+      h('div', { class: 'pick-teams small' }, logo(away.espnId || away.id, 16, away.color), h('span', null, away.abbr), h('span', { class: 'muted' }, g.neutral ? ' vs ' : ' @ '), logo(home.espnId || home.id, 16, home.color), h('span', null, home.abbr), pH != null ? h('span', { class: 'muted' }, ` · ${home.abbr} ${pct(pH)}`) : null),
       seg(
         [
           ['away', away.abbr],

@@ -1,6 +1,6 @@
 import { h, pct, shortDate, hexColor } from '../util.js';
 import { sparkline } from '../charts.js';
-import { cardSub, stat, teamLink, sideLabel, notice } from '../components.js';
+import { cardSub, stat, teamLink, sideLabel, notice, logo } from '../components.js';
 import { FEATURES, FEATURE_LABELS, contributions } from '../../engine/committee.js';
 
 const fmtFeature = (f, v) => {
@@ -28,7 +28,7 @@ export function renderTeam(app, params) {
       { class: 'card team-head', style: { '--team': hexColor(t.color) } },
       h('div', { class: 'team-band', 'aria-hidden': 'true' }),
       h('p', { class: 'eyebrow' }, `${app.confLong(t.conf)}${t.div ? ` · ${t.div}` : ''}`),
-      h('h1', null, t.name),
+      h('div', { class: 'team-title' }, logo(id, 56, t.color), h('h1', null, t.name)),
       h('p', { class: 'muted' }, `${t.record} overall · ${t.confRecord} in conference · rating ${t.rating > 0 ? '+' : ''}${t.rating} (#${t.ratingRank} of 138)${t.ap ? ` · AP #${t.ap}` : ''}${t.cfp ? ` · CFP #${t.cfp}` : ''}`),
       t.ineligible ? notice(t.ineligible, 'warn') : null,
       isG6

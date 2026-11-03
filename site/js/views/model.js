@@ -1,5 +1,5 @@
 import { h, pct, dayDate } from '../util.js';
-import { cardSub, dot, teamLink } from '../components.js';
+import { cardSub, logo, teamLink } from '../components.js';
 import { barList } from '../charts.js';
 import { FEATURES, FEATURE_LABELS } from '../../engine/committee.js';
 
@@ -110,7 +110,7 @@ export function renderModel(app) {
                 'tr',
                 null,
                 h('td', null, String(s.season)),
-                h('td', null, s.actual ? h('span', null, dot(s.actual.color), ` ${s.actual.name} `, h('span', { class: 'muted small' }, `#${s.actual.rank} · ${s.actual.record}`)) : '–'),
+                h('td', null, s.actual ? h('span', { class: 'team' }, logo(s.actual.id, 18, s.actual.color), ` ${s.actual.name} `, h('span', { class: 'muted small' }, `#${s.actual.rank} · ${s.actual.record}`)) : '–'),
                 h('td', null, h('span', { class: s.hit ? 'win' : 'loss' }, s.hit ? '✓ ' : '✗ '), s.hit ? 'Same' : h('span', null, `${s.pick.name} `, h('span', { class: 'muted small' }, s.pick.record))),
                 h('td', { class: 'num' }, s.actual ? pct(s.actual.p) : '–')
               )

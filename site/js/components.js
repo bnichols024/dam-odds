@@ -6,18 +6,40 @@ export function dot(color) {
   return h('span', { class: 'team-dot', style: { background: hexColor(color) }, 'aria-hidden': 'true' });
 }
 
-export function teamLink(app, id, { full = false, rank = true } = {}) {
+// Team logo from ESPN's CDN (light and dark versions; CSS shows the one for the theme).
+// Falls back to the team-color dot if ESPN has no logo for that id.
+const logoUrl = (id, px, dark) => `https://a.espncdn.com/combiner/i?img=/i/teamlogos/ncaa/${dark ? '500-dark' : '500'}/${id}.png&w=${px}&h=${px}`;
+export function logo(id, size = 18, color = null) {
+  if (!id || id === 'FCS' || Number(id) < 0) return dot(color);
+  const px = Math.min(200, Math.round(size * 2));
+  const wrap = h('span', { class: 'logo', style: { width: `${size}px`, height: `${size}px` }, 'aria-hidden': 'true' });
+  const mk = (dark) => {
+    const img = h('img', { src: logoUrl(id, px, dark), alt: '', width: size, height: size, loading: 'lazy', decoding: 'async', class: dark ? 'logo-dark' : 'logo-light' });
+    img.addEventListener('error', () => {
+      if (dark) {
+        img.remove();
+        wrap.classList.add('no-dark');
+      } else if (wrap.isConnected) wrap.replaceWith(dot(color));
+    });
+    return img;
+  };
+  wrap.append(mk(false), mk(true));
+  return wrap;
+}
+
+export function teamLink(app, id, { full = false, rank = true, size = 18 } = {}) {
   const t = app.T(id);
   const r = rank && (t.cfp || t.ap);
   const label = full ? t.location || t.name : t.abbr;
-  const inner = [dot(t.color), r ? h('span', { class: 'rank' }, String(r)) : null, h('span', { class: 'tname' }, label)];
+  const inner = [logo(id, size, t.color), r ? h('span', { class: 'rank' }, String(r)) : null, h('span', { class: 'tname' }, label)];
   if (!id || id === 'FCS' || !app.snap.teams[id]) return h('span', { class: 'team' }, inner);
   return h('a', { class: `team${id === app.focus ? ' focus' : ''}`, href: `#/team/${id}` }, inner);
 }
 
 export function sideLabel(app, gameId, which, opts = {}) {
   const t = app.side(gameId, which);
-  if (t.fcs || t.id === null || t.id === 'FCS') return h('span', { class: 'team' }, dot(t.color), h('span', { class: 'tname' }, opts.full ? t.location : t.abbr));
+  if (t.fcs || t.id === null || t.id === 'FCS')
+    return h('span', { class: 'team' }, logo(t.espnId, opts.size || 18, t.color), h('span', { class: 'tname' }, opts.full ? t.location : t.abbr));
   return teamLink(app, t.id, opts);
 }
 

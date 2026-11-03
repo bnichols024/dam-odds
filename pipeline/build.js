@@ -224,14 +224,32 @@ async function main() {
   t = Date.now();
   const levWeek = leverage(ctx, thisWeekIds, { n: N_LEV, seed: 4242 });
   log(`this-week leverage: ${thisWeekIds.length} games in ${((Date.now() - t) / 1000).toFixed(1)}s`);
-  const later = condRows
-    .filter((r) => !thisWeekIds.includes(r.id))
-    .sort((a, b) => Math.abs(b.swing) - Math.abs(a.swing))
-    .slice(0, 16)
-    .map((r) => r.id);
+  // "if OSU wins out" view: OSU's only realistic path, and ~10x the resolution for small games
+  const WO = { forceTeams: { [FOCUS]: 'win' } };
+  const resWO = run(ctx, { n: N_BASE, seed: 20261103, track: true, ...WO });
+  const condWO = res.trace.tracked.map((g) => ctx.games[g].id).map((id) => {
+    const h = conditional(ctx, resWO, { [id]: 'home' });
+    const a = conditional(ctx, resWO, { [id]: 'away' });
+    return { id, swing: h.bid - a.bid };
+  });
+  const top = (rows, k) =>
+    rows
+      .filter((r) => !thisWeekIds.includes(r.id))
+      .sort((a, b) => Math.abs(b.swing) - Math.abs(a.swing))
+      .slice(0, k)
+      .map((r) => r.id);
+  const later = [...new Set([...top(condRows, 12), ...top(condWO, 12)])];
   t = Date.now();
   const levLater = leverage(ctx, later, { n: N_LEV, seed: 4242 });
   log(`later leverage: ${later.length} games in ${((Date.now() - t) / 1000).toFixed(1)}s`);
+  const notFocus = (id) => {
+    const g = ctx.games[ctx.gIndex.get(id)];
+    return g.home !== FOCUS && g.away !== FOCUS;
+  };
+  t = Date.now();
+  const woWeek = leverage(ctx, thisWeekIds.filter(notFocus), { n: N_LEV, seed: 4242, extra: WO });
+  const woLater = leverage(ctx, later.filter(notFocus), { n: N_LEV, seed: 4242, extra: WO });
+  log(`win-out leverage: ${woWeek.games.length + woLater.games.length} games in ${((Date.now() - t) / 1000).toFixed(1)}s`);
 
   // ---- replay: what the model would have said after each finished week ----
   const replay = [];
@@ -351,6 +369,7 @@ async function main() {
       base: levWeek.base,
       games: levWeek.games,
       later: levLater.games,
+      winOut: { base: woWeek.base, games: woWeek.games, later: woLater.games },
       conditional: condRows.map((r) => ({ id: r.id, swing: +r.swing.toFixed(4) })),
     },
     model: {

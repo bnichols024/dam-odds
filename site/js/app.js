@@ -43,6 +43,8 @@ class App {
     this.lev = new Map(snap.leverage.games.map((g) => [g.id, g]));
     this.levLater = new Map(snap.leverage.later.map((g) => [g.id, g]));
     this.levCond = new Map(snap.leverage.conditional.map((g) => [g.id, g]));
+    const wo = snap.leverage.winOut || { base: null, games: [], later: [] };
+    this.wo = { base: wo.base, map: new Map([...wo.later, ...wo.games].map((g) => [g.id, g])) };
     this.gameMeta = snap.gamesMeta;
   }
 
@@ -74,7 +76,7 @@ class App {
     const id = which === 'home' ? g.home : g.away;
     if (id === 'FCS') {
       const m = which === 'home' ? meta?.h : meta?.a;
-      return { id: 'FCS', abbr: m?.abbr || 'FCS', name: m?.name || 'FCS opponent', location: m?.name || 'FCS opponent', color: m?.color || '777777', fcs: true };
+      return { id: 'FCS', espnId: m?.id || null, abbr: m?.abbr || 'FCS', name: m?.name || 'FCS opponent', location: m?.name || 'FCS opponent', color: m?.color || '777777', fcs: true };
     }
     if (id == null) return { id: null, abbr: 'TBD', name: 'TBD', location: 'TBD', color: '777777' };
     return this.T(id);
@@ -304,7 +306,8 @@ function buildShell() {
   const foot = h(
     'footer',
     { class: 'foot' },
-    h('p', null, 'Unofficial fan project, not affiliated with Oregon State University, the Pac-12 or the CFP. Data: ESPN public scoreboards and rankings. Odds come from a simulation model and can be wrong.')
+    h('p', null, 'Unofficial fan project, not affiliated with Oregon State University, the Pac-12 or the CFP. Data: ESPN public scoreboards and rankings. Odds come from a simulation model and can be wrong.'),
+    h('p', null, 'Team logos are trademarks of their schools, shown for identification.')
   );
   root.append(header, h('div', { class: 'body' }, nav, h('div', { class: 'content' }, main, foot)));
 }

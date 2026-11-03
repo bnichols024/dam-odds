@@ -99,6 +99,35 @@ export function ago(iso) {
   return `${Math.round(s / 86400)} days ago`;
 }
 
+// Viewer-local calendar day, e.g. "2026-11-03".
+export function dayKey(iso) {
+  const d = iso instanceof Date ? iso : new Date(iso);
+  const p = (x) => String(x).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+export function todayKey() {
+  return dayKey(new Date());
+}
+function keyToDate(key) {
+  const [y, m, d] = key.split('-').map(Number);
+  return new Date(y, m - 1, d, 12);
+}
+// "Today", "Tomorrow", "Yesterday" or "Thursday"
+export function dayName(key) {
+  const today = keyToDate(todayKey());
+  const diff = Math.round((keyToDate(key) - today) / 86400000);
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Tomorrow';
+  if (diff === -1) return 'Yesterday';
+  return keyToDate(key).toLocaleDateString(undefined, { weekday: 'long' });
+}
+export function dayLong(key) {
+  return keyToDate(key).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+}
+export function dayShort(key) {
+  return keyToDate(key).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
 export function hexColor(c, fallback = '888888') {
   const x = (c || fallback).replace('#', '');
   return /^[0-9a-f]{6}$/i.test(x) ? `#${x}` : `#${fallback}`;

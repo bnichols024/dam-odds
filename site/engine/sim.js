@@ -109,6 +109,28 @@ export function prepare(input) {
   const g6List = [];
   for (let t = 0; t < T; t++) if (g6[t]) g6List.push(t);
 
+  // The focus team's remaining games in order, for "chance to win out": its known games, then
+  // its flex game (opponent set per simulated season), then its league title game.
+  const focusIdx = idx.get(input.focus);
+  const focusSteps = [];
+  if (focusIdx != null) {
+    const known = [];
+    games.forEach((g, i) => {
+      if (status[i] === STATUS.post || kind[i] === KIND.title) return;
+      if (home[i] === focusIdx || away[i] === focusIdx) known.push({ type: 'game', gi: i, id: g.id, date: g.date });
+    });
+    known.sort((a, b) => (a.date < b.date ? -1 : 1));
+    focusSteps.push(...known);
+    if (flex && flex.slots.some((sl) => sl.visitor === focusIdx || sl.host === focusIdx)) {
+      const pending = flex.slots.filter((sl) => (sl.host === focusIdx || sl.visitor === focusIdx) && away[sl.gi] < 0);
+      if (pending.length) focusSteps.push({ type: 'flex', id: null, date: games[pending[0].gi].date });
+    }
+    const fc = confs.find((c) => c.teamIdx.includes(focusIdx));
+    if (fc && fc.titleGame >= 0 && status[fc.titleGame] !== STATUS.post) {
+      focusSteps.push({ type: 'title', gi: fc.titleGame, id: games[fc.titleGame].id, date: games[fc.titleGame].date });
+    }
+  }
+
   return {
     P,
     input,
@@ -139,7 +161,8 @@ export function prepare(input) {
     g6List,
     committee: input.committee,
     cutoffs: input.cutoffs,
-    focus: idx.get(input.focus),
+    focus: focusIdx,
+    focusSteps,
     rule: input.rule || 'top',
   };
 }
@@ -239,8 +262,12 @@ export function run(ctx, opts = {}) {
     g6Top3: new Float64Array(T),
     focus: { bid: 0, bidChamp: 0, bidNoChamp: 0, champ: 0, title: 0, record: {}, g6Rank: {}, blockers: {} },
     titlePairs: {},
+    ladder: new Float64Array(ctx.focusSteps.length),
+    winOutBid: 0,
   };
   const focusConf = focus != null ? confs.find((c) => c.teamIdx.includes(focus)) : null;
+  const steps = ctx.focusSteps;
+  const focusWon = (g) => (H[g] === focus && M[g] > 0) || (A[g] === focus && M[g] < 0);
 
   const addSide = (t, o, won) => {
     fn[t]++;
@@ -518,6 +545,19 @@ export function run(ctx, opts = {}) {
       }
       if (champ[focus]) f.champ++;
       if (inTitle[focus]) f.title++;
+      // win-out ladder: how far the focus team stays perfect
+      let perfect = true;
+      for (let k = 0; k < steps.length && perfect; k++) {
+        const st = steps[k];
+        let gi = st.gi;
+        if (st.type === 'flex') {
+          gi = -1;
+          for (const sl of flex.slots) if (H[sl.gi] === focus || A[sl.gi] === focus) gi = sl.gi;
+        }
+        if (gi == null || gi < 0 || (st.type === 'title' && !inTitle[focus]) || !focusWon(gi)) perfect = false;
+        else out.ladder[k]++;
+      }
+      if (perfect && steps.length && got) out.winOutBid++;
       let rank = 1;
       for (const t of g6List) if (t !== focus && eligible[t] && score[t] > score[focus]) rank++;
       const rk = rank > 8 ? '9+' : String(rank);
@@ -565,11 +605,26 @@ export function summarize(ctx, res) {
       const [home, away] = k.split('|');
       return { home, away, share: v.n / n, homeWin: v.homeWins / v.n };
     });
+  const steps = ctx.focusSteps || [];
+  const lad = res.ladder || [];
+  const ladder = steps.map((st, k) => ({
+    type: st.type,
+    id: st.id,
+    date: st.date,
+    perfectAfter: lad[k] / n,
+    pWin: k === 0 ? lad[0] / n : lad[k - 1] ? lad[k] / lad[k - 1] : 0,
+  }));
+  const regSteps = steps.filter((st) => st.type !== 'title').length;
+  const winOutAll = steps.length ? lad[steps.length - 1] / n : 0;
   return {
     n,
     teams,
     titlePairs,
     focus: {
+      ladder,
+      winOutReg: regSteps ? lad[regSteps - 1] / n : 1,
+      winOutAll,
+      bidIfWinOut: lad[steps.length - 1] ? res.winOutBid / lad[steps.length - 1] : 0,
       bid: f.bid / n,
       bidChamp: f.bidChamp / n,
       bidNoChamp: f.bidNoChamp / n,
@@ -590,12 +645,13 @@ export function summarize(ctx, res) {
  * Leverage of single games on the focus team's bid odds. Same seed for both forced runs, so the
  * difference is the game's effect, not noise.
  */
-export function leverage(ctx, gameIds, { n = 4000, seed = 777, onProgress } = {}) {
-  const base = run(ctx, { n, seed }).focus.bid / n;
+// `extra` is merged into every run, e.g. { forceTeams: { '204': 'win' } } for "if OSU wins out".
+export function leverage(ctx, gameIds, { n = 4000, seed = 777, onProgress, extra = {} } = {}) {
+  const base = run(ctx, { ...extra, n, seed }).focus.bid / n;
   const out = [];
   gameIds.forEach((id, k) => {
-    const ifHome = run(ctx, { n, seed, forced: { [id]: 'home' } }).focus.bid / n;
-    const ifAway = run(ctx, { n, seed, forced: { [id]: 'away' } }).focus.bid / n;
+    const ifHome = run(ctx, { ...extra, n, seed, forced: { ...(extra.forced || {}), [id]: 'home' } }).focus.bid / n;
+    const ifAway = run(ctx, { ...extra, n, seed, forced: { ...(extra.forced || {}), [id]: 'away' } }).focus.bid / n;
     out.push({ id, ifHome, ifAway, swing: ifHome - ifAway });
     if (onProgress) onProgress((k + 1) / gameIds.length);
   });
